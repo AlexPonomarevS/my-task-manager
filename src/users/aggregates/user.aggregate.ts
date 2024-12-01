@@ -5,6 +5,7 @@ import {
   StoredEvent,
 } from '@event-nest/core';
 import { UserCreatedEvent } from '../events/user-created.event';
+import * as bcrypt from 'bcrypt';
 
 @AggregateRootName('User')
 export class User extends AggregateRoot {
@@ -40,5 +41,13 @@ export class User extends AggregateRoot {
     this.name = event.name;
     this.email = event.email;
     this.hashedPassword = event.hashedPassword;
+  }
+
+  public async checkPassword(password: string): Promise<boolean> {
+    return await bcrypt.compare(password, this.hashedPassword);
+  }
+  public getPublicProfile() {
+    const { hashedPassword, ...publicProfile } = this;
+    return publicProfile;
   }
 }

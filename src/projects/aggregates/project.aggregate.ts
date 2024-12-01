@@ -12,6 +12,7 @@ export class Project extends AggregateRoot {
   private name: string;
   private members: string[];
   private statuses: string[];
+  private tasks: string[]; // Новый массив для хранения задач
 
   private constructor(id: string) {
     super(id);

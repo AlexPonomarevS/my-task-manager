@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EventNestPostgreSQLModule } from '@event-nest/postgresql';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { TasksModule } from './tasks/tasks.module';
       schemaName: 'public',
       ensureTablesExist: true,
     }),
-    UsersModule,
+    UserModule,
     ProjectsModule,
     TasksModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
