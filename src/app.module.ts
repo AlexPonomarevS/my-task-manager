@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { EventNestPostgreSQLModule } from '@event-nest/postgresql';
 import { UsersModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProjectsModule } from './projects/projects.module';
     }),
     UsersModule,
     ProjectsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
