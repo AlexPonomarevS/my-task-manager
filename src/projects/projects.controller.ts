@@ -8,7 +8,18 @@ export class ProjectController {
 
   @Post()
   async createProject(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectService.createProject(createProjectDto.name);
+    return this.projectService.createProject(
+      createProjectDto.name,
+      createProjectDto.createdBy,
+    );
+  }
+
+  @Post(':id/status')
+  async addStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: { status: string },
+  ) {
+    return this.projectService.addStatus(id, updateStatusDto.status);
   }
 
   @Get(':id')
