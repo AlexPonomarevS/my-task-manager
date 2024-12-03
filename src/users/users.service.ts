@@ -4,18 +4,19 @@ import * as bcrypt from 'bcrypt';
 import { User } from './aggregates/user.aggregate';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthService } from '../auth/auth.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Aggregate } from '../typeORM/aggregate.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  private userIndex: Map<string, string>;
-
   constructor(
+    @InjectRepository(Aggregate)
+    private readonly aggregateRepository: Repository<Aggregate>,
     @Inject(EVENT_STORE) private eventStore: EventStore,
     @Inject(forwardRef(() => AuthService))
     private authService: AuthService,
-  ) {
-    this.userIndex = new Map();
-  }
+  ) {}
 
   async createUser(name: string, email: string, password: string) {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -23,8 +24,6 @@ export class UserService {
     const user = User.createNew(userId, name, email, hashedPassword);
     const userWithPublisher = this.eventStore.addPublisher(user);
     await userWithPublisher.commit();
-
-    this.userIndex.set(email, userId);
 
     return user.id;
   }
@@ -35,11 +34,26 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    const userId = this.userIndex.get(email);
-    if (!userId) {
-      return null;
-    }
-    const events = await this.eventStore.findByAggregateRootId(User, userId);
-    return User.fromEvents(userId, events);
+    const aggregates = await this.aggregateRepository.find();
+    const aggregatesIds = aggregates.map((aggregate) => aggregate.id);
+    const usersEvents = await this.eventStore.findByAggregateRootIds(
+      User,
+      aggregatesIds,
+    );
+    const users = aggregatesIds
+      .map((id) => {
+        const events = usersEvents[id];
+        if (events) {
+          return User.fromEvents(id, events);
+        } else {
+          return null;
+        }
+      })
+      .filter((user) => user !== null);
+    users.forEach((user) => {
+      console.log(user.email);
+    });
+    const foundUser = users.find((user: User) => user.email === email);
+    return foundUser || null;
   }
 }

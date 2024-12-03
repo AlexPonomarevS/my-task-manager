@@ -6,13 +6,15 @@ import {
 } from '@event-nest/core';
 import { ProjectCreatedEvent } from '../events/project-created.event';
 import { ProjectStatusUpdatedEvent } from '../events/project-status-updated.event';
+import { TaskAddedToProjectEvent } from '../events/task-added-to-project.event';
+import { MemberAddedToProjectEvent } from '../events/member-added-to-project.event'; // Импортируем событие создания задачи
 
 @AggregateRootName('Project')
 export class Project extends AggregateRoot {
   private name: string;
-  private members: string[];
-  private statuses: string[];
-  private tasks: string[]; // Новый массив для хранения задач
+  public members: string[];
+  public statuses: string[];
+  public tasks: string[];
 
   private constructor(id: string) {
     super(id);
@@ -44,7 +46,22 @@ export class Project extends AggregateRoot {
 
   public removeStatus(status: string) {
     this.statuses = this.statuses.filter((s) => s !== status);
-    // Вам нужно сохранить событие для удаления статуса, если необходимо
+  }
+
+  public isMember(userId: string): boolean {
+    return this.members.includes(userId);
+  }
+
+  public addMember(userId: string) {
+    const event = new MemberAddedToProjectEvent(this.id, userId);
+    this.applyMemberAddedToProjectEvent(event);
+    this.append(event);
+  }
+
+  public addTask(taskId: string) {
+    const event = new TaskAddedToProjectEvent(this.id, taskId);
+    this.applyTaskAddedToProjectEvent(event);
+    this.append(event);
   }
 
   @ApplyEvent(ProjectCreatedEvent)
@@ -52,10 +69,21 @@ export class Project extends AggregateRoot {
     this.name = event.name;
     this.members = event.members;
     this.statuses = event.initialStatus;
+    this.tasks = []; // Инициализация списка задач
   }
 
   @ApplyEvent(ProjectStatusUpdatedEvent)
   private applyProjectStatusUpdatedEvent(event: ProjectStatusUpdatedEvent) {
     this.statuses.push(event.newStatus);
+  }
+
+  @ApplyEvent(TaskAddedToProjectEvent)
+  private applyTaskAddedToProjectEvent(event: TaskAddedToProjectEvent) {
+    this.tasks.push(event.taskId);
+  }
+
+  @ApplyEvent(MemberAddedToProjectEvent)
+  private applyMemberAddedToProjectEvent(event: MemberAddedToProjectEvent) {
+    this.members.push(event.userId);
   }
 }

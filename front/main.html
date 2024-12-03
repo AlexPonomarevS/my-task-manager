@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Main Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #333;
+        }
+        #content {
+            margin-bottom: 20px;
+        }
+        #createProjectButton {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #createProjectButton:hover {
+            background-color: #45a049;
+        }
+        #projects {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        #projects div {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        #projects div:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+<h1>Main Page</h1>
+<div id="content"></div>
+<button id="createProjectButton">Создать проект</button>
+<div id="projects"></div>
+<script>
+    async function fetchProjects() {
+        const token = localStorage.getItem('token');
+        const userId = await getUserId(token);
+        if (!token) {
+            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            return;
+        }
+
+        const response = await fetch(`/projects/user/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+            },
+        });
+
+        if (response.ok) {
+            const projects = await response.json();
+            const projectsDiv = document.getElementById('projects');
+            projectsDiv.innerHTML = ''; // Очищаем содержимое перед обновлением
+
+            projects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.innerText = project.name;
+                projectDiv.addEventListener('click', () => {
+                    window.location.href = `project?id=${project._id}`; // Переход на страницу проекта
+                });
+                projectsDiv.appendChild(projectDiv);
+            });
+        } else {
+            window.location.href = 'login'; // Перенаправляем на страницу логина, если запрос не удался
+        }
+    }
+
+    async function createProject() {
+        const token = localStorage.getItem('token');
+        const userId = await getUserId(token);
+        if (!token) {
+            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            return;
+        }
+
+        const projectName = prompt('Введите название проекта:');
+        if (!projectName) {
+            alert('Название проекта не может быть пустым.');
+            return;
+        }
+
+        const response = await fetch('/projects', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+            },
+            body: JSON.stringify({ name: projectName, createdBy: userId }),
+        });
+
+        if (response.ok) {
+            alert('Проект успешно создан.');
+            fetchProjects(); // Обновляем данные на странице после создания проекта
+        } else {
+            alert('Не удалось создать проект.');
+        }
+    }
+
+    async function getUserId(tok){
+        const response = await fetch(`/auth/${tok}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${tok}`, // Используем токен для аутентификации
+            },
+        });
+        if (response.ok) {
+            const user = await response.json();
+            return user._id;
+        } else {
+            window.location.href = 'login';
+        }
+    }
+
+    document.getElementById('createProjectButton').addEventListener('click', createProject);
+
+    fetchProjects();
+</script>
+</body>
+</html>

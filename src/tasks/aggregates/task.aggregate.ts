@@ -6,12 +6,16 @@ import {
 } from '@event-nest/core';
 import { TaskCreatedEvent } from '../events/task-created.event';
 import { TaskStatusUpdatedEvent } from '../events/task-status-updated.event';
+import { TaskCompletedEvent } from '../events/task-completed.event';
+import { AssigneeAddedEvent } from '../events/assignee-added.event';
 
 @AggregateRootName('Task')
 export class Task extends AggregateRoot {
   private name: string;
   private status: string;
   private projectId: string;
+  private completed: boolean;
+  public assignees: string[];
 
   private constructor(id: string) {
     super(id);
@@ -19,7 +23,7 @@ export class Task extends AggregateRoot {
 
   public static createNew(id: string, projectId: string, name: string): Task {
     const task = new Task(id);
-    const event = new TaskCreatedEvent(projectId, name);
+    const event = new TaskCreatedEvent(id, projectId, name);
     task.applyTaskCreatedEvent(event);
     task.append(event);
     return task;
@@ -37,15 +41,39 @@ export class Task extends AggregateRoot {
     this.append(event);
   }
 
+  public completeTask() {
+    const event = new TaskCompletedEvent(this.id, !this.completed);
+    this.applyTaskCompletedEvent(event);
+    this.append(event);
+  }
+
+  public addAssignee(userId: string) {
+    const event = new AssigneeAddedEvent(this.id, userId);
+    this.applyAssigneeAddedEvent(event);
+    this.append(event);
+  }
+
   @ApplyEvent(TaskCreatedEvent)
   private applyTaskCreatedEvent(event: TaskCreatedEvent) {
     this.name = event.name;
     this.status = 'CREATED'; // Статус по умолчанию
     this.projectId = event.projectId;
+    this.completed = false; // Задача по умолчанию не выполнена
+    this.assignees = [];
   }
 
   @ApplyEvent(TaskStatusUpdatedEvent)
   private applyTaskStatusUpdatedEvent(event: TaskStatusUpdatedEvent) {
     this.status = event.newStatus;
+  }
+
+  @ApplyEvent(TaskCompletedEvent)
+  private applyTaskCompletedEvent(event: TaskCompletedEvent) {
+    this.completed = event.completed;
+  }
+
+  @ApplyEvent(AssigneeAddedEvent)
+  private applyAssigneeAddedEvent(event: AssigneeAddedEvent) {
+    this.assignees.push(event.userId);
   }
 }

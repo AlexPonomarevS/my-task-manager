@@ -9,16 +9,23 @@ export class UserController {
 
   @Post('register')
   async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(
+    const userId = this.userService.createUser(
       createUserDto.name,
       createUserDto.email,
       createUserDto.password,
     );
+    return { message: 'Registration successful!', userId };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUser(@Param('id') id: string) {
     return this.userService.getUser(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':email/email')
+  async findByEmail(@Param('email') email: string) {
+    return this.userService.findByEmail(email);
   }
 }

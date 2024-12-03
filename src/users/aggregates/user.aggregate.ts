@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 @AggregateRootName('User')
 export class User extends AggregateRoot {
   private name: string;
-  private email: string;
+  public email: string;
   private hashedPassword: string;
 
   private constructor(id: string) {
