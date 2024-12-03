@@ -63,32 +63,32 @@
         const token = localStorage.getItem('token');
         const userId = await getUserId(token);
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
         const response = await fetch(`/projects/user/${userId}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
         });
 
         if (response.ok) {
             const projects = await response.json();
             const projectsDiv = document.getElementById('projects');
-            projectsDiv.innerHTML = ''; // Очищаем содержимое перед обновлением
+            projectsDiv.innerHTML = '';
 
             projects.forEach(project => {
                 const projectDiv = document.createElement('div');
                 projectDiv.innerText = project.name;
                 projectDiv.addEventListener('click', () => {
-                    window.location.href = `project?id=${project._id}`; // Переход на страницу проекта
+                    window.location.href = `project?id=${project._id}`;
                 });
                 projectsDiv.appendChild(projectDiv);
             });
         } else {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если запрос не удался
+            window.location.href = 'login';
         }
     }
 
@@ -96,7 +96,7 @@
         const token = localStorage.getItem('token');
         const userId = await getUserId(token);
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -110,14 +110,14 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ name: projectName, createdBy: userId }),
         });
 
         if (response.ok) {
             alert('Проект успешно создан.');
-            fetchProjects(); // Обновляем данные на странице после создания проекта
+            fetchProjects();
         } else {
             alert('Не удалось создать проект.');
         }
@@ -127,7 +127,7 @@
         const response = await fetch(`/auth/${tok}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${tok}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${tok}`,
             },
         });
         if (response.ok) {

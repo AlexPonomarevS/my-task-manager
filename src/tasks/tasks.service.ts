@@ -21,7 +21,7 @@ export class TaskService {
     const taskWithPublisher = this.eventStore.addPublisher(task);
     await taskWithPublisher.commit();
 
-    project.addTask(taskId); // Добавляем задачу в проект
+    project.addTask(taskId);
     const projectWithPublisher = this.eventStore.addPublisher(project);
     await projectWithPublisher.commit();
 
@@ -102,5 +102,16 @@ export class TaskService {
       return User.fromEvents(id, events);
     });
     return users;
+  }
+
+  async updateTaskName(taskId: string, newName: string) {
+    const taskEvents = await this.eventStore.findByAggregateRootId(
+      Task,
+      taskId,
+    );
+    const task = Task.fromEvents(taskId, taskEvents);
+    const taskWithPublisher = this.eventStore.addPublisher(task);
+    task.updateName(newName);
+    await taskWithPublisher.commit();
   }
 }

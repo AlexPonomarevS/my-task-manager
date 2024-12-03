@@ -7,7 +7,8 @@ import {
 import { ProjectCreatedEvent } from '../events/project-created.event';
 import { ProjectStatusUpdatedEvent } from '../events/project-status-updated.event';
 import { TaskAddedToProjectEvent } from '../events/task-added-to-project.event';
-import { MemberAddedToProjectEvent } from '../events/member-added-to-project.event'; // Импортируем событие создания задачи
+import { MemberAddedToProjectEvent } from '../events/member-added-to-project.event';
+import { ProjectStatusRemovedEvent } from '../events/project-status-removed.event';
 
 @AggregateRootName('Project')
 export class Project extends AggregateRoot {
@@ -45,7 +46,9 @@ export class Project extends AggregateRoot {
   }
 
   public removeStatus(status: string) {
-    this.statuses = this.statuses.filter((s) => s !== status);
+    const event = new ProjectStatusRemovedEvent(this.id, status);
+    this.applyProjectStatusRemovedEvent(event);
+    this.append(event);
   }
 
   public isMember(userId: string): boolean {
@@ -69,7 +72,7 @@ export class Project extends AggregateRoot {
     this.name = event.name;
     this.members = event.members;
     this.statuses = event.initialStatus;
-    this.tasks = []; // Инициализация списка задач
+    this.tasks = [];
   }
 
   @ApplyEvent(ProjectStatusUpdatedEvent)
@@ -85,5 +88,10 @@ export class Project extends AggregateRoot {
   @ApplyEvent(MemberAddedToProjectEvent)
   private applyMemberAddedToProjectEvent(event: MemberAddedToProjectEvent) {
     this.members.push(event.userId);
+  }
+
+  @ApplyEvent(ProjectStatusRemovedEvent)
+  private applyProjectStatusRemovedEvent(event: ProjectStatusRemovedEvent) {
+    this.statuses = this.statuses.filter((s) => s !== event.status);
   }
 }

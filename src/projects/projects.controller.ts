@@ -61,4 +61,13 @@ export class ProjectController {
     const users = await this.projectService.getUsersByProject(projectId);
     return users;
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/remove-status')
+  async removeStatus(
+    @Param('id') id: string,
+    @Body() removeStatusDto: { status: string },
+  ) {
+    return this.projectService.removeStatus(id, removeStatusDto.status);
+  }
 }

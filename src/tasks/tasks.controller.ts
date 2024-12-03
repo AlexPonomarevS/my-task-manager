@@ -9,8 +9,7 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { User } from '../common/decorators/user.decorator';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Импортируем наш декоратор
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('tasks')
 export class TaskController {
@@ -64,5 +63,14 @@ export class TaskController {
   async getUsersByTask(@Param('taskId') taskId: string) {
     const users = await this.taskService.getUsersByTask(taskId);
     return users;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':taskId/update-name')
+  async updateTaskName(
+    @Param('taskId') taskId: string,
+    @Body() body: { newName: string },
+  ) {
+    return this.taskService.updateTaskName(taskId, body.newName);
   }
 }

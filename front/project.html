@@ -38,10 +38,27 @@
             margin: 10px;
             width: 30%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .tasks-column h2 {
             text-align: center;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: #ff5f5f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .close-button:hover {
+            background-color: #ff0000;
         }
 
         .task {
@@ -150,14 +167,14 @@
     async function fetchProjectDetails(projectId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
         const response = await fetch(`/projects/${projectId}`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
         });
 
@@ -165,35 +182,68 @@
             const project = await response.json();
             const tasksContainer = document.getElementById('tasks-container');
 
-            // Очищаем существующие колонки
+
             tasksContainer.innerHTML = '';
 
-            // Создаем колонки для каждого статуса
+
             project.statuses.forEach(status => {
                 const column = document.createElement('div');
                 column.className = 'tasks-column';
                 column.id = `${status.toLowerCase()}-tasks`;
                 column.innerHTML = `<h2>${status}</h2>`;
+                const closeButton = document.createElement('button');
+                closeButton.classList.add('close-button');
+                closeButton.textContent = '×'
+                closeButton.addEventListener('click', async () => {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        window.location.href = 'login';
+                        return;
+                    }
+
+                    const childrenCount = column.children.length;
+                    if(childrenCount > 2){
+                        alert('У данного статуса остались задачи. Удаление невозможно!');
+                        return
+                    }
+
+                    const response = await fetch(`/projects/${projectId}/remove-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({status: status}),
+                    });
+
+                    if (response.ok) {
+                        alert('Статус успешно удален.');
+                        fetchProjectDetails(projectId);
+                    } else {
+                        alert('Не удалось удалить статус.');
+                    }
+                });
+                column.appendChild(closeButton);
                 tasksContainer.appendChild(column);
             });
 
-            fetchTasks(projectId, project.statuses); // Получаем задачи для проекта
+            fetchTasks(projectId, project.statuses);
         } else {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если запрос не удался
+            window.location.href = 'login';
         }
     }
 
     async function fetchTasks(projectId, statuses) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
         const response = await fetch(`/projects/${projectId}/tasks`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
         });
 
@@ -204,6 +254,38 @@
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task';
                 taskDiv.id = task._id;
+                const taskUpdateNameButton = document.createElement('button');
+                taskUpdateNameButton.textContent = 'Изменить название';
+                taskUpdateNameButton.addEventListener('click', async () => {
+                    const updatedName = prompt('Введите новое название задачи:');
+                    if (!updatedName) {
+                        alert('Название задачи не может быть пустым.');
+                        return;
+                    }
+
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        window.location.href = 'login';
+                        return;
+                    }
+
+                    const response = await fetch(`/tasks/${task._id}/update-name`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({newName: updatedName}),
+                    });
+
+                    if (response.ok) {
+                        alert('Название успешно изменено.');
+                        fetchProjectDetails(projectId);
+                    } else {
+                        alert('Не удалось изменить название.');
+                    }
+                });
+
                 const taskUsersList = document.createElement('ul');
                 taskUsersList.id = 'usersListFromTask';
                 fetchUsersFromTask(task._id);
@@ -230,21 +312,22 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`,
                         },
-                        body: JSON.stringify({ userId: userId, projectId: projectId }),
+                        body: JSON.stringify({userId: userId, projectId: projectId}),
                     });
 
                     if (response.ok) {
                         alert('Исполнитель успешно добавлен.');
+                        fetchProjectDetails(projectId);
                     } else {
                         alert('Не удалось добавить исполнителя.');
                     }
                 });
                 taskDiv.appendChild(taskUsersList);
                 taskDiv.appendChild(assignButton);
+                taskDiv.appendChild(taskUpdateNameButton);
 
                 const taskName = document.createElement('h3');
                 taskName.textContent = task.name;
-                // taskDiv.innerText = task.name;
                 taskDiv.appendChild(taskName);
 
                 const statusColumn = document.getElementById(`${task.status.toLowerCase()}-tasks`);
@@ -265,7 +348,7 @@
                 const completeCheckbox = document.createElement('input');
                 completeCheckbox.type = 'checkbox';
                 completeCheckbox.className = 'complete-task-checkbox';
-                completeCheckbox.checked = task.completed; // Устанавливаем состояние чекбокса
+                completeCheckbox.checked = task.completed;
                 completeCheckbox.addEventListener('change', () => {
                     toggleTaskCompletion(task._id, projectId, completeCheckbox.checked);
                 });
@@ -282,14 +365,14 @@
                 taskDiv.appendChild(completeLabel);
             });
         } else {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если запрос не удался
+            window.location.href = 'login';
         }
     }
 
     async function toggleTaskCompletion(taskId, projectId, completed) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -297,13 +380,13 @@
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
         });
 
         if (response.ok) {
             alert('Статус задачи успешно обновлен.');
-            fetchProjectDetails(projectId); // Обновляем данные на странице после изменения статуса задачи
+            fetchProjectDetails(projectId);
         } else {
             alert('Не удалось изменить статус задачи.');
         }
@@ -312,7 +395,7 @@
     async function createTask(projectId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -326,7 +409,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({projectId: projectId, name: taskName}),
         });
@@ -334,7 +417,7 @@
         if (response.ok) {
             const task = await response.json();
             alert('Задача успешно создана.');
-            await fetchProjectDetails(projectId); // Обновляем данные на странице после создания задачи
+            await fetchProjectDetails(projectId);
         } else {
             alert('Не удалось создать задачу.');
         }
@@ -343,7 +426,7 @@
     async function createStatus(projectId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -357,24 +440,24 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({status: statusName.toUpperCase()}),
         });
 
         if (response.ok) {
-            fetchProjectDetails(projectId); // Обновляем данные на странице после создания статуса
+            fetchProjectDetails(projectId);
             alert('Статус успешно создан.');
         } else {
             alert('Не удалось создать статус.');
         }
     }
 
-    async function getUserIdFromEmail( userEmail, tok) {
+    async function getUserIdFromEmail(userEmail, tok) {
         const res = await fetch(`/users/${userEmail}/email`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${tok}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${tok}`,
             },
         });
         if (res.ok) {
@@ -389,7 +472,7 @@
     async function addMemberToProject(projectId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -406,13 +489,14 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({userId: userId}),
             });
 
             if (response.ok) {
                 alert('Участник успешно добавлен.');
+                fetchProjectDetails(projectId);
             } else {
                 alert('Не удалось добавить участника.');
             }
@@ -425,7 +509,7 @@
     async function changeTaskStatus(taskId, projectId, statuses) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
 
@@ -439,14 +523,14 @@
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Используем токен для аутентификации
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({status: newStatus.toUpperCase()}),
         });
 
         if (response.ok) {
             alert('Статус задачи успешно обновлен.');
-            fetchProjectDetails(projectId); // Обновляем данные на странице после изменения статуса задачи
+            fetchProjectDetails(projectId);
         } else {
             alert('Не удалось изменить статус задачи.');
         }
@@ -464,7 +548,6 @@
         addMemberToProject(projectId);
     });
 
-    // Получаем projectId и projectName из URL
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
     const projectName = urlParams.get('name');
@@ -474,56 +557,56 @@
     }
 
     if (projectId) {
-        fetchProjectDetails(projectId); // Получаем детали проекта и задачи
+        fetchProjectDetails(projectId);
     } else {
         alert('Project ID not found');
-        window.location.href = 'main'; // Перенаправляем на главную страницу, если projectId не найден
+        window.location.href = 'main';
     }
 
     async function fetchUsersFromProject(projectId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
         try {
             const response = await fetch(`projects/${projectId}/users`, {
-            method: 'GET',
+                method: 'GET',
                 headers: {
-                'Authorization': `Bearer ${token}`, // Предполагается, что токен хранится в localStorage
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                window.location.href = 'login';
+                return;
             }
-        });
 
-        if (!response.ok) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
-            return;
+            const users = await response.json();
+            displayUsers(users, 'userList');
+        } catch (error) {
+            console.error('Ошибка при получении пользователей:', error);
         }
-
-        const users = await response.json();
-        displayUsers(users, 'userList');
-    } catch (error) {
-        console.error('Ошибка при получении пользователей:', error);
-    }
     }
 
     async function fetchUsersFromTask(taskId) {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+            window.location.href = 'login';
             return;
         }
         try {
             const response = await fetch(`tasks/${taskId}/users`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Предполагается, что токен хранится в localStorage
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
             if (!response.ok) {
-                window.location.href = 'login'; // Перенаправляем на страницу логина, если токен не найден
+                window.location.href = 'login';
                 return;
             }
 
@@ -536,11 +619,11 @@
 
     function displayUsers(users, elemId) {
         const userList = document.getElementById(elemId);
-        userList.innerHTML = ''; // Очистка списка перед добавлением новых элементов
+        userList.innerHTML = '';
 
         users.forEach(user => {
             const li = document.createElement('li');
-            li.textContent = user.email; // Предполагается, что объект пользователя имеет поле email
+            li.textContent = user.email;
             userList.appendChild(li);
         });
     }

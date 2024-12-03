@@ -11,14 +11,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'postgres', // тип базы данных
-      host: 'localhost', // адрес хоста
-      port: 5433, // порт, обычно 5432 для PostgreSQL
-      username: 'myuser', // ваше имя пользователя
-      password: 'mypassword', // ваш пароль
-      database: 'mydatabase', // имя вашей базы данных
-      entities: [__dirname + '/**/*.entity{.ts,.js}'], // путь к вашим сущностям
-      synchronize: true, // автоматически синхронизировать схему (в разработке)
+      type: 'postgres',
+      host: 'localhost',
+      port: 5433,
+      username: 'myuser',
+      password: 'mypassword',
+      database: 'mydatabase',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
     }),
     EventNestPostgreSQLModule.forRoot({
       aggregatesTableName: 'aggregates',

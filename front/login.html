@@ -60,7 +60,7 @@
     #message {
         text-align: center;
         margin-top: 15px;
-        color: #d9534f; /* Цвет для сообщений об ошибках */
+        color: #d9534f;
     }
     </style>
 </head>
@@ -90,8 +90,8 @@
 
         const result = await response.json();
         if (result.access_token) {
-            localStorage.setItem('token', result.access_token.access_token); // Сохраняем токен в локальное хранилище
-            window.location.href = 'main'; // Перенаправляем на главную страницу
+            localStorage.setItem('token', result.access_token.access_token);
+            window.location.href = 'main';
         } else {
             document.getElementById('message').innerText = result.message || 'Login failed!';
         }

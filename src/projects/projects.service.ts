@@ -90,4 +90,15 @@ export class ProjectService {
     });
     return users;
   }
+
+  async removeStatus(projectId: string, status: string) {
+    const events = await this.eventStore.findByAggregateRootId(
+      Project,
+      projectId,
+    );
+    const project = Project.fromEvents(projectId, events);
+    const projectWithPublisher = this.eventStore.addPublisher(project);
+    project.removeStatus(status);
+    await projectWithPublisher.commit();
+  }
 }
