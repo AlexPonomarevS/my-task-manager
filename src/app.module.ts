@@ -7,6 +7,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProjectionModule } from './projection/projection.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ProjectsModule,
     TasksModule,
     AuthModule,
+    ProjectionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

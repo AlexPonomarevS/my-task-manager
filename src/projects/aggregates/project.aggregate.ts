@@ -27,9 +27,12 @@ export class Project extends AggregateRoot {
     createdBy: string,
   ): Project {
     const project = new Project(id);
-    const event = new ProjectCreatedEvent(name, [createdBy], ['CREATED']);
+    const event = new ProjectCreatedEvent(name, [], ['CREATED']);
     project.applyProjectCreatedEvent(event);
     project.append(event);
+
+    const eventAddMember = new MemberAddedToProjectEvent(id, createdBy);
+    project.applyMemberAddedToProjectEvent(eventAddMember);
     return project;
   }
 

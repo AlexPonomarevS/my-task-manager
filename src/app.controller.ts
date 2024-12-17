@@ -9,6 +9,11 @@ export class AppController {
     return res.sendFile(join(__dirname, '..', 'front', 'registered.html'));
   }
 
+  @Get('projections')
+  getProjectionsPage(@Res() res: Response) {
+    return res.sendFile(join(__dirname, '..', 'front', 'projections.html'));
+  }
+
   @Get('login')
   getLoginPage(@Res() res: Response) {
     return res.sendFile(join(__dirname, '..', 'front', 'login.html'));

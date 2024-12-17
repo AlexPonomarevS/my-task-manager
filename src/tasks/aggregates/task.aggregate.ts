@@ -8,7 +8,7 @@ import { TaskCreatedEvent } from '../events/task-created.event';
 import { TaskStatusUpdatedEvent } from '../events/task-status-updated.event';
 import { TaskCompletedEvent } from '../events/task-completed.event';
 import { AssigneeAddedEvent } from '../events/assignee-added.event';
-import {TaskNameUpdatedEvent} from "../events/task-name-updated.event";
+import { TaskNameUpdatedEvent } from '../events/task-name-updated.event';
 
 @AggregateRootName('Task')
 export class Task extends AggregateRoot {

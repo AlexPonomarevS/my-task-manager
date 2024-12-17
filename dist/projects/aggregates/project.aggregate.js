@@ -23,9 +23,11 @@ let Project = Project_1 = class Project extends core_1.AggregateRoot {
     }
     static createNew(id, name, createdBy) {
         const project = new Project_1(id);
-        const event = new project_created_event_1.ProjectCreatedEvent(name, [createdBy], ['CREATED']);
+        const event = new project_created_event_1.ProjectCreatedEvent(name, [], ['CREATED']);
         project.applyProjectCreatedEvent(event);
         project.append(event);
+        const eventAddMember = new member_added_to_project_event_1.MemberAddedToProjectEvent(id, createdBy);
+        project.applyMemberAddedToProjectEvent(eventAddMember);
         return project;
     }
     static fromEvents(id, events) {

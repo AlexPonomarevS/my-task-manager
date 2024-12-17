@@ -16,6 +16,7 @@ const projects_module_1 = require("./projects/projects.module");
 const tasks_module_1 = require("./tasks/tasks.module");
 const auth_module_1 = require("./auth/auth.module");
 const typeorm_1 = require("@nestjs/typeorm");
+const projection_module_1 = require("./projection/projection.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -43,6 +44,7 @@ exports.AppModule = AppModule = __decorate([
             projects_module_1.ProjectsModule,
             tasks_module_1.TasksModule,
             auth_module_1.AuthModule,
+            projection_module_1.ProjectionModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

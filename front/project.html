@@ -514,6 +514,7 @@
         }
 
         const newStatus = prompt('Введите новый статус для задачи:');
+        console.log(newStatus);
         if (!newStatus || !statuses.map(status => status.toUpperCase()).includes(newStatus.toUpperCase())) {
             alert('Некорректный статус. Пожалуйста, введите один из существующих статусов.');
             return;

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users List</title>
+</head>
+<body>
+<h1>All Users List</h1>
+<ul id="users-list">
+
+</ul>
+
+<h1>All Users List</h1>
+<ul id="tasks-list">
+
+</ul>
+
+<h1>Project - Status List</h1>
+<ul id="projectStatus-list">
+
+</ul>
+
+<h1>Project - Members List</h1>
+<ul id="projectMembers-list">
+
+</ul>
+
+<h1>Project - Tasks List</h1>
+<ul id="projectTasks-list">
+
+</ul>
+
+<script>
+    async function fetchProjectStatus() {
+        try {
+            const response = await fetch('/projection/project-statuses');
+            const data = await response.json();
+            const dataList = document.getElementById('projectStatus-list');
+
+            dataList.innerHTML = '';
+
+            const projects = {};
+
+            data.forEach(item => {
+                if (!projects[item.projectId]) {
+                    projects[item.projectId] = [];
+                }
+                projects[item.projectId].push(item.status);
+            });
+
+            for (const projectId in projects) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Project ID: ${projectId} -> Statuses: ${projects[projectId].join(', ')}`;
+                dataList.appendChild(listItem);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    async function fetchProjectMembers() {
+        try {
+            const response = await fetch('/projection/project-members');
+            const data = await response.json();
+            const dataList = document.getElementById('projectMembers-list');
+
+            dataList.innerHTML = '';
+
+            const projects = {};
+
+            data.forEach(item => {
+                if (!projects[item.projectId]) {
+                    projects[item.projectId] = [];
+                }
+                projects[item.projectId].push(item.userId);
+            });
+
+            for (const projectId in projects) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Project ID: ${projectId} -> Members: ${projects[projectId].join(', ')}`;
+                dataList.appendChild(listItem);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    async function fetchProjectTasks() {
+        try {
+            const response = await fetch('/projection/project-tasks');
+            const data = await response.json();
+            const dataList = document.getElementById('projectTasks-list');
+
+            dataList.innerHTML = '';
+
+            const projects = {};
+
+            data.forEach(item => {
+                if (!projects[item.projectId]) {
+                    projects[item.projectId] = [];
+                }
+                projects[item.projectId].push(item.taskId);
+            });
+
+            for (const projectId in projects) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Project ID: ${projectId} -> Tasks: ${projects[projectId].join(', ')}`;
+                dataList.appendChild(listItem);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    async function fetchUsers() {
+        try {
+            const response = await fetch('/projection/users');
+            const users = await response.json();
+            const userList = document.getElementById('users-list');
+
+            userList.innerHTML = '';
+
+            users.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${user.name} (${user.email})`;
+                userList.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    }
+
+    async function fetchTasks() {
+        try {
+            const response = await fetch('/projection/tasks');
+            const tasks = await response.json();
+            const taskList = document.getElementById('tasks-list');
+
+            taskList.innerHTML = '';
+
+            tasks.forEach(task => {
+                const listItem = document.createElement('li');
+                console.log(task.status);
+                let textCompleted = "Не выполнено";
+                if(task.completed){
+                    textCompleted = "Выполнено";
+                }
+                listItem.textContent = `Id: ${task.id}; ProjectID:${task.projectID}; Name: ${task.name}; Completed: ${textCompleted}; Status: ${task.status}.`;
+                taskList.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    }
+
+    window.onload = function() {
+        fetchUsers();
+        fetchTasks();
+        fetchProjectStatus();
+        fetchProjectMembers();
+        fetchProjectTasks();
+    };
+</script>
+</body>
+</html>
